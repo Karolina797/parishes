@@ -2,8 +2,9 @@ package com.selenium.parishes;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.Arrays;
 
@@ -21,10 +22,11 @@ public class SelectedProvinces {
 
 
         //Array of provinces
-        String[] provinces = {"Dolnośląskie", "Kujawsko-Pomorskie", "Lubelskie", "Lubuskie", "Łódzkie", "Małopolskie",
-                "Mazowieckie", "Opolskie", "Podkarpackie", "Podlaskie", "Pomorskie", "Śląskie", "Świętokrzyskie",
-                "Warmińsko-Mazurskie", "Wielkopolskie", "Zachodniopomorskie"};
+        // String[] provinces = {"Dolnośląskie", "Kujawsko-Pomorskie", "Lubelskie", "Lubuskie", "Łódzkie", "Małopolskie",
+        //         "Mazowieckie", "Opolskie", "Podkarpackie", "Podlaskie", "Pomorskie", "Śląskie", "Świętokrzyskie",
+        //       "Warmińsko-Mazurskie", "Wielkopolskie", "Zachodniopomorskie"};
 
+        String[] provinces = {"Kujawsko-Pomorskie"};
 
         parishesFromAllProvince(driver, provinces, parishesList);
 
@@ -33,13 +35,20 @@ public class SelectedProvinces {
     //Data of selected parish
     public static void parishData(WebDriver driver, List parishesList) {
 
+        WebDriverWait w = new WebDriverWait(driver, 5);
+        w.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='prawa2']/div[2]")));
+        driver.findElement(By.xpath("//div[@class='prawa2']/div[2]"));
         Parish parish = new Parish(driver.findElement(By.xpath("//div[@class='item']/h1")).getText(), driver.findElement(By.xpath("//div[@class='prawa2']/div[2]")).getText(),
                 driver.findElement(By.xpath("//div[@class='prawa2']/div[4]")).getText(), driver.findElement(By.xpath("//div[@class='prawa2']/div[6]")).getText(),
                 driver.findElement(By.xpath("//div[@class='prawa2']/div[8]")).getText(), driver.findElement(By.xpath("//div[@class='prawa2']/div[10]")).getText(),
                 driver.findElement(By.xpath("//div[@class='prawa2']/div[12]")).getText());
         parishesList.add(parish);
-        //parish.parishPresentation(); - just for me
+        System.out.println(parish.getName());
         driver.navigate().back();
+        System.out.println("po back");
+        WebDriverWait w2 = new WebDriverWait(driver, 5);
+        w2.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='prawa2']/div[2]")));
+        System.out.println("powrót do until");
 
     }
 
@@ -51,8 +60,20 @@ public class SelectedProvinces {
         int i = 0;
 
         while (i < amountOfParishesOnPage) {
+            WebDriverWait w = new WebDriverWait(driver, 5);
+            w.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("a[href*='/parafia-']")));
 
             driver.findElements(By.cssSelector("a[href*='/parafia-']")).get(i).click();
+            try {
+                w.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='prawa2']/div[2]")));
+            } catch (Exception exception) {
+                System.out.println("Exception, przed klikiem");
+                driver.findElements(By.cssSelector("a[href*='/parafia-']")).get(i).click();
+                System.out.println("Exception, po kliku");
+                w.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='prawa2']/div[2]")));
+            }
+
+            System.out.println("po click");
             parishData(driver, parishesList);
             i++;
 
@@ -81,14 +102,14 @@ public class SelectedProvinces {
     public static void parishesFromAllProvince(WebDriver driver, String[] provinces, List parishesList) {
 
         driver.get("http://www.plebanie.pl/");
-        List<WebElement> provincesOnPage = driver.findElements(By.cssSelector("div.item_left a[href*='/wojewodztwo/']"));
+        int provincesSize = driver.findElements(By.cssSelector("div.item_left a[href*='/wojewodztwo/']")).size();
         List provincesList = Arrays.asList(provinces);
 
         int j = 0;
 
-        for (int i = 0; i < provincesOnPage.size(); i++) {
+        for (int i = 0; i < provincesSize; i++) {
 
-            String currentProvince = provincesOnPage.get(i).getText();
+            String currentProvince = driver.findElements(By.cssSelector("div.item_left a[href*='/wojewodztwo/']")).get(i).getText();
 
             if (provincesList.contains(currentProvince)) {
 
