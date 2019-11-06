@@ -26,7 +26,7 @@ public class SelectedProvinces {
         //         "Mazowieckie", "Opolskie", "Podkarpackie", "Podlaskie", "Pomorskie", "Śląskie", "Świętokrzyskie",
         //       "Warmińsko-Mazurskie", "Wielkopolskie", "Zachodniopomorskie"};
 
-        String[] provinces = {"Kujawsko-Pomorskie"};
+        String[] provinces = {"Lubuskie"};
 
         parishesFromAllProvince(driver, provinces, parishesList);
 
@@ -35,8 +35,8 @@ public class SelectedProvinces {
     //Data of selected parish
     public static void parishData(WebDriver driver, List parishesList) {
 
-        WebDriverWait w = new WebDriverWait(driver, 5);
-        w.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='prawa2']/div[2]")));
+        WebDriverWait w = new WebDriverWait(driver, 8);
+        w.until(ExpectedConditions.elementToBeClickable(By.xpath("//div[@class='prawa2']/div[2]")));
         driver.findElement(By.xpath("//div[@class='prawa2']/div[2]"));
         Parish parish = new Parish(driver.findElement(By.xpath("//div[@class='item']/h1")).getText(), driver.findElement(By.xpath("//div[@class='prawa2']/div[2]")).getText(),
                 driver.findElement(By.xpath("//div[@class='prawa2']/div[4]")).getText(), driver.findElement(By.xpath("//div[@class='prawa2']/div[6]")).getText(),
@@ -46,7 +46,7 @@ public class SelectedProvinces {
         System.out.println(parish.getName());
         driver.navigate().back();
         System.out.println("po back");
-        WebDriverWait w2 = new WebDriverWait(driver, 5);
+        WebDriverWait w2 = new WebDriverWait(driver, 8);
         w2.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='prawa2']/div[2]")));
         System.out.println("powrót do until");
 
@@ -60,17 +60,17 @@ public class SelectedProvinces {
         int i = 0;
 
         while (i < amountOfParishesOnPage) {
-            WebDriverWait w = new WebDriverWait(driver, 5);
-            w.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("a[href*='/parafia-']")));
+            WebDriverWait w = new WebDriverWait(driver, 8);
+            w.until(ExpectedConditions.elementToBeClickable(By.cssSelector("a[href*='/parafia-']")));
 
             driver.findElements(By.cssSelector("a[href*='/parafia-']")).get(i).click();
             try {
-                w.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='prawa2']/div[2]")));
+                w.until(ExpectedConditions.elementToBeClickable(By.xpath("//div[@class='prawa2']/div[2]")));
             } catch (Exception exception) {
                 System.out.println("Exception, przed klikiem");
                 driver.findElements(By.cssSelector("a[href*='/parafia-']")).get(i).click();
                 System.out.println("Exception, po kliku");
-                w.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='prawa2']/div[2]")));
+                w.until(ExpectedConditions.elementToBeClickable(By.xpath("//div[@class='prawa2']/div[2]")));
             }
 
             System.out.println("po click");
@@ -91,8 +91,14 @@ public class SelectedProvinces {
         while (i < numberOfPages) {
 
             parishesFromOnePage(driver, parishesList);
-            driver.findElement(By.cssSelector("a[title='następna']")).click();
+
+            if(i==numberOfPages-1){
+                break;
+            }else {
+                driver.findElement(By.cssSelector("a[title='następna']")).click();
+            }
             i++;
+
         }
 
     }
