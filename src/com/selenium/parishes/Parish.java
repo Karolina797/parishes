@@ -50,16 +50,5 @@ public class Parish {
         return notes;
     }
 
-    public void parishPresentation(){
-        System.out.println("Name: " + getName());
-        System.out.println("Address: " + getAddress());
-        System.out.println("Phone: " + getPhoneNumber());
-        System.out.println("Url: " + getUrl());
-        System.out.println("Diocese: " + getDiocese());
-        System.out.println("Decanate: " + getDecanate());
-        System.out.println("Notes: " + getNotes());
-    }
-
-
 
 }

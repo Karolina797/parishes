@@ -1,11 +1,17 @@
 package com.selenium.parishes;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 import java.util.LinkedList;
@@ -13,7 +19,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class SelectedProvinces {
-    public static void main(String[] args) {
+
+    public static void main(String[] args) throws IOException {
 
         System.setProperty("webdriver.chrome.driver", "C:\\Work\\chromedriver.exe");
         WebDriver driver = new ChromeDriver();
@@ -22,11 +29,9 @@ public class SelectedProvinces {
 
 
         //Array of provinces
-        // String[] provinces = {"Dolnośląskie", "Kujawsko-Pomorskie", "Lubelskie", "Lubuskie", "Łódzkie", "Małopolskie",
-        //         "Mazowieckie", "Opolskie", "Podkarpackie", "Podlaskie", "Pomorskie", "Śląskie", "Świętokrzyskie",
-        //       "Warmińsko-Mazurskie", "Wielkopolskie", "Zachodniopomorskie"};
-
-        String[] provinces = {"Lubuskie"};
+        String[] provinces = {"Dolnośląskie", "Kujawsko-Pomorskie", "Lubelskie", "Lubuskie", "Łódzkie", "Małopolskie",
+                "Mazowieckie", "Opolskie", "Podkarpackie", "Podlaskie", "Pomorskie", "Śląskie", "Świętokrzyskie",
+                "Warmińsko-Mazurskie", "Wielkopolskie", "Zachodniopomorskie"};
 
         parishesFromAllProvince(driver, provinces, parishesList);
 
@@ -35,7 +40,7 @@ public class SelectedProvinces {
     //Data of selected parish
     public static void parishData(WebDriver driver, List parishesList) {
 
-        WebDriverWait w = new WebDriverWait(driver, 8);
+        WebDriverWait w = new WebDriverWait(driver, 15);
         w.until(ExpectedConditions.elementToBeClickable(By.xpath("//div[@class='prawa2']/div[2]")));
         driver.findElement(By.xpath("//div[@class='prawa2']/div[2]"));
         Parish parish = new Parish(driver.findElement(By.xpath("//div[@class='item']/h1")).getText(), driver.findElement(By.xpath("//div[@class='prawa2']/div[2]")).getText(),
@@ -45,10 +50,7 @@ public class SelectedProvinces {
         parishesList.add(parish);
         System.out.println(parish.getName());
         driver.navigate().back();
-        System.out.println("po back");
-        WebDriverWait w2 = new WebDriverWait(driver, 8);
-        w2.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='prawa2']/div[2]")));
-        System.out.println("powrót do until");
+        w.until(ExpectedConditions.invisibilityOfElementLocated(By.xpath("//div[@class='prawa2']/div[2]")));
 
     }
 
@@ -60,20 +62,16 @@ public class SelectedProvinces {
         int i = 0;
 
         while (i < amountOfParishesOnPage) {
-            WebDriverWait w = new WebDriverWait(driver, 8);
+            WebDriverWait w = new WebDriverWait(driver, 15);
             w.until(ExpectedConditions.elementToBeClickable(By.cssSelector("a[href*='/parafia-']")));
-
             driver.findElements(By.cssSelector("a[href*='/parafia-']")).get(i).click();
+
             try {
                 w.until(ExpectedConditions.elementToBeClickable(By.xpath("//div[@class='prawa2']/div[2]")));
             } catch (Exception exception) {
-                System.out.println("Exception, przed klikiem");
                 driver.findElements(By.cssSelector("a[href*='/parafia-']")).get(i).click();
-                System.out.println("Exception, po kliku");
                 w.until(ExpectedConditions.elementToBeClickable(By.xpath("//div[@class='prawa2']/div[2]")));
             }
-
-            System.out.println("po click");
             parishData(driver, parishesList);
             i++;
 
@@ -81,7 +79,7 @@ public class SelectedProvinces {
     }
 
     //Data of parishes from one province
-    public static void parishesFromOneProvince(WebDriver driver, List parishesList) {
+    public static void parishesFromOneProvince(WebDriver driver, List parishesList, String currentProvince) throws IOException {
 
         driver.findElement(By.cssSelector("a[title='ostatnia']")).click();
         int numberOfPages = Integer.parseInt(driver.findElement(By.cssSelector("span.nawigacja_a")).getText());
@@ -92,20 +90,29 @@ public class SelectedProvinces {
 
             parishesFromOnePage(driver, parishesList);
 
-            if(i==numberOfPages-1){
-                break;
-            }else {
+            if (i == numberOfPages - 1) {
+                try (
+                        BufferedWriter writer = Files.newBufferedWriter(Paths.get("./" + currentProvince + ".csv"));
+                        CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader("Parish Name", "Address", "Phone Number", "url", "Diocese", "Decanate", "Notes"));
+                ) {
+                    for (int t = 0; t < parishesList.size(); t++) {
+                        csvPrinter.printRecord(((Parish) parishesList.get(t)).getName(), ((Parish) parishesList.get(t)).getAddress().replaceAll("\n", " "), ((Parish) parishesList.get(t)).getPhoneNumber(),
+                                ((Parish) parishesList.get(t)).getUrl(), ((Parish) parishesList.get(t)).getDiocese(), ((Parish) parishesList.get(t)).getDecanate(), ((Parish) parishesList.get(t)).getNotes().replaceAll("\n", " "));
+                    }
+                    csvPrinter.flush();
+                }
+
+            } else {
                 driver.findElement(By.cssSelector("a[title='następna']")).click();
             }
             i++;
 
         }
-
     }
 
 
     //Data of parishes from all provinces
-    public static void parishesFromAllProvince(WebDriver driver, String[] provinces, List parishesList) {
+    public static void parishesFromAllProvince(WebDriver driver, String[] provinces, List parishesList) throws IOException {
 
         driver.get("http://www.plebanie.pl/");
         int provincesSize = driver.findElements(By.cssSelector("div.item_left a[href*='/wojewodztwo/']")).size();
@@ -118,15 +125,12 @@ public class SelectedProvinces {
             String currentProvince = driver.findElements(By.cssSelector("div.item_left a[href*='/wojewodztwo/']")).get(i).getText();
 
             if (provincesList.contains(currentProvince)) {
-
                 driver.findElements(By.cssSelector("div.item_left a[href*='/wojewodztwo/']")).get(i).click();
-                parishesFromOneProvince(driver, parishesList);
+                parishesFromOneProvince(driver, parishesList, currentProvince);
                 j++;
                 if (j == provinces.length)
                     break;
-
             }
         }
     }
-
 }

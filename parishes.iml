@@ -74,5 +74,16 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://C:/Work/commons-csv-1.7-bin/commons-csv-1.7/commons-csv-1.7.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://C:/Work/commons-csv-1.7-bin/commons-csv-1.7/commons-csv-1.7-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>
